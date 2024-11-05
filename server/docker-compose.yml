@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres
+    depends_on:
+      - db
+    volumes:
+      - server-logs:/app/logs
+    networks:
+      - app-network
+    restart: always  # Reiniciar automaticamente em caso de falhas
+  db:
+    image: postgres:15.3
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: always  # Reiniciar automaticamente em caso de falhas
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+networks:
+  app-network:
+    driver: bridge
+volumes:
+  postgres-data:
+  server-logs:
